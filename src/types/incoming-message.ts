@@ -8,5 +8,12 @@ declare module 'http' {
     logOut: typeof IncomingMessageExt.logOut
     isAuthenticated: typeof IncomingMessageExt.isAuthenticated
     isUnauthenticated: typeof IncomingMessageExt.isUnauthenticated
+    session: any
+    _passport: {
+      instance: any
+      session?: any
+    }
+    flash(key: string, message: string): void
+    [k: string]: any
   }
 }

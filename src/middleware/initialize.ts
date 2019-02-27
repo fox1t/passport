@@ -1,4 +1,4 @@
-import { Handler, Request } from 'express'
+import { Handler } from 'express'
 /**
  * Passport initialization.
  *
@@ -41,16 +41,9 @@ import { Handler, Request } from 'express'
  * @api public
  */
 // TODO: add typings to instance and session
-interface ExtendedRequest extends Request {
-  _passport: {
-    instance: any
-    session?: any
-  }
-  session: any
-}
 
 export default function initializeFactory(passport: any): Handler {
-  return function initialize(req: ExtendedRequest, res, next) {
+  return function initialize(req, res, next) {
     req._passport = {
       instance: passport,
     }
