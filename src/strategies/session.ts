@@ -6,7 +6,7 @@ class SessionStrategy extends Strategy {
   name: string
   _deserializeUser: Function
 
-  constructor(options: Function | object, deserializeUser?: Function) {
+  constructor(options: Function | any, deserializeUser?: Function) {
     super()
     if (typeof options === 'function') {
       deserializeUser = options
@@ -17,6 +17,7 @@ class SessionStrategy extends Strategy {
     this.name = 'session'
     this._deserializeUser = deserializeUser!
   }
+
   /**
    * Authenticate request based on the current session state.
    *
