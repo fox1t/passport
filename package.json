@@ -38,6 +38,8 @@
     "@types/express": "~4.16.1",
     "@types/node": "~11.9.5",
     "@types/passport": "~1.0.0",
+    "@types/passport-strategy": "~0.2.35",
+    "@types/pause": "~0.1.0",
     "chai": "2.x.x",
     "chai-connect-middleware": "0.3.x",
     "chai-passport-strategy": "0.2.x",
