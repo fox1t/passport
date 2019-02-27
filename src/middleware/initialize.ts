@@ -1,3 +1,4 @@
+import { Handler, Request } from 'express'
 /**
  * Passport initialization.
  *
@@ -5,7 +6,7 @@
  * to be applied.
  *
  * If sessions are being utilized, applications must set up Passport with
- * functions to serialize a user into and out of a session.  For example, a
+ * functions to serialize a user into and out of a session. For example, a
  * common pattern is to serialize just the user ID into the session (due to the
  * fact that it is desirable to store the minimum amount of data in a session).
  * When a subsequent request arrives for the session, the full User object can
@@ -15,7 +16,7 @@
  * must use the `connect.session()` middleware _before_ `passport.initialize()`.
  *
  * If sessions are being used, this middleware must be in use by the
- * Connect/Express application for Passport to operate.  If the application is
+ * Connect/Express application for Passport to operate. If the application is
  * entirely stateless (not using sessions), this middleware is not necessary,
  * but its use will not have any adverse impact.
  *
@@ -39,17 +40,26 @@
  * @return {Function}
  * @api public
  */
-module.exports = function initialize(passport) {
-  
-  return function initialize(req, res, next) {
-    req._passport = {};
-    req._passport.instance = passport;
+// TODO: add typings to instance and session
+interface ExtendedRequest extends Request {
+  _passport: {
+    instance: any
+    session?: any
+  }
+  session: any
+}
+
+export default function initializeFactory(passport: any): Handler {
+  return function initialize(req: ExtendedRequest, res, next) {
+    req._passport = {
+      instance: passport,
+    }
 
     if (req.session && req.session[passport._key]) {
       // load data from existing session
-      req._passport.session = req.session[passport._key];
+      req._passport.session = req.session[passport._key]
     }
 
-    next();
-  };
-};
+    next()
+  }
+}
