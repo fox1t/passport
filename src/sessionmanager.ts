@@ -43,4 +43,4 @@ class SessionManager {
   }
 }
 
-export default SessionManager
+export = SessionManager

@@ -9,6 +9,17 @@
     "authn",
     "authentication"
   ],
+  "scripts": {
+    "prebuild": "npm run clean-build && npm run lint",
+    "build": "tsc -p ./tsconfig.json",
+    "clean-build": "rimraf ./lib && mkdir lib",
+    "prettier": "prettier --loglevel warn --write \"src/**/*.{ts,tsx}\"",
+    "prelint": "npm run prettier",
+    "lint": "tslint --fix -c tslint.json -t stylish -p ./tsconfig.json",
+    "update": "npx npm-check -u",
+    "prepublishOnly": "npm run build",
+    "test": "mocha --require test/tshook.js ./test/*.ts"
+  },
   "author": {
     "name": "Jared Hanson",
     "email": "jaredhanson@gmail.com",
@@ -48,14 +59,12 @@
     "mocha": "2.x.x",
     "prettier": "~1.16.4",
     "proxyquire": "1.4.x",
+    "rimraf": "~2.6.3",
     "tslint": "~5.13.0",
     "tslint-config-prettier": "~1.18.0",
     "typescript": "~3.3.3333"
   },
   "engines": {
     "node": ">= 0.4.0"
-  },
-  "scripts": {
-    "test": "node_modules/.bin/mocha --reporter spec --require test/bootstrap/node test/*.test.js test/**/*.test.js"
   }
 }

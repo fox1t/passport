@@ -39,4 +39,4 @@ connectMiddleware.__monkeypatchNode = function() {
   http.IncomingMessage.prototype.isUnauthenticated = IncomingMessageExt.isUnauthenticated
 }
 
-export default connectMiddleware
+export = connectMiddleware

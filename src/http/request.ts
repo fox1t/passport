@@ -106,4 +106,4 @@ const req = {
   isUnauthenticated,
 }
 
-export default req
+export = req

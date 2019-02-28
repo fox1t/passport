@@ -42,7 +42,7 @@ import { Handler } from 'express'
  */
 // TODO: add typings to instance and session
 
-export default function initializeFactory(passport: any): Handler {
+export = function initializeFactory(passport: any): Handler {
   return function initialize(req, res, next) {
     req._passport = {
       instance: passport,

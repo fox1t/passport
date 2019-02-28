@@ -468,4 +468,4 @@ sessionManager = function(mgr) {
   }
 }
 
-export default Authenticator
+export = Authenticator

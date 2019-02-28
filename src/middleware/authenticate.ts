@@ -85,7 +85,7 @@ interface AuthenticateFactoryOptions {
   authInfo?: boolean
 }
 
-export default function authenticateFactory(
+export = function authenticateFactory(
   passport: any,
   name: string | string[],
   options: AuthenticateFactoryOptions,
@@ -142,21 +142,22 @@ export default function authenticateFactory(
 
       // Strategies are ordered by priority.  For the purpose of flashing a
       // message, the first failure will be displayed.
-      let failure = failures[0] || {}
-      let challenge: string | any = failure.challenge || {}
-      let msg: string | boolean
+      let failure = failures[0] || {},
+        challenge = failure.challenge || {},
+        msg
 
       if (options.failureFlash) {
         let flash = options.failureFlash
+        if (typeof flash === 'boolean') {
+          flash = challenge as FlashObject
+        }
         if (typeof flash === 'string') {
           flash = { type: 'error', message: flash }
-        } else if (typeof flash === 'boolean') {
-          flash = {}
         }
-        flash.type = flash.type || 'error'
+        ;(flash as FlashObject).type = (flash as FlashObject).type || 'error'
 
-        const type = flash.type || (challenge as any).type || 'error'
-        msg = flash.message || (challenge as any).message || challenge
+        const type = (flash as FlashObject).type || (challenge as FlashObject).type || 'error'
+        msg = (flash as FlashObject).message || (challenge as FlashObject).message || challenge
         if (typeof msg === 'string') {
           req.flash(type, msg)
         }
@@ -164,7 +165,7 @@ export default function authenticateFactory(
       if (options.failureMessage) {
         msg = options.failureMessage
         if (typeof msg === 'boolean') {
-          msg = challenge.message || challenge
+          msg = (challenge as FlashObject).message || challenge
         }
         if (typeof msg === 'string') {
           req.session.messages = req.session.messages || []
@@ -180,27 +181,27 @@ export default function authenticateFactory(
       // header will be set according to the strategies in use (see
       // actions#fail).  If multiple strategies failed, each of their challenges
       // will be included in the response.
-      const rchallenge: string[] = []
-      let rstatus: number | undefined
-      let status: number | undefined
+      const rchallenge = []
+      let rstatus
+      let status
 
       for (let j = 0, len = failures.length; j < len; j++) {
         failure = failures[j]
         challenge = failure.challenge
         status = failure.status
 
-        rstatus = rstatus! || status
+        rstatus = rstatus || status
         if (typeof challenge === 'string') {
           rchallenge.push(challenge)
         }
       }
 
-      res.statusCode = rstatus! || 401
+      res.statusCode = rstatus || 401
       if (res.statusCode === 401 && rchallenge.length) {
         res.setHeader('WWW-Authenticate', rchallenge)
       }
       if (options.failWithError) {
-        return next(new AuthenticationError(http.STATUS_CODES[res.statusCode]!, rstatus!))
+        return next(new AuthenticationError(http.STATUS_CODES[res.statusCode]!, rstatus as number))
       }
       res.end(http.STATUS_CODES[res.statusCode])
     }
@@ -253,6 +254,9 @@ export default function authenticateFactory(
 
         if (options.successFlash) {
           let flash = options.successFlash
+          if (typeof flash === 'boolean') {
+            flash = info || {}
+          }
           if (typeof flash === 'string') {
             flash = { type: 'success', message: flash }
           }
@@ -299,7 +303,7 @@ export default function authenticateFactory(
             next()
           }
 
-          if (options.authInfo) {
+          if (options.authInfo !== false) {
             passport.transformAuthInfo(info, req, function(error: Error, tinfo: any) {
               if (error) {
                 return next(error)

@@ -70,4 +70,4 @@ class SessionStrategy extends Strategy {
     }
   }
 }
-export default SessionStrategy
+export = SessionStrategy
