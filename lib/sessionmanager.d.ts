@@ -1,9 +1,9 @@
-import { Request } from 'express';
+import { ExtendedRequest } from './types/incoming-message';
 declare class SessionManager {
     _key: string;
     _serializeUser: Function;
     constructor(options: Function | any, serializeUser: Function);
-    logIn(req: Request, user: any, cb: (err?: Error) => void): void;
-    logOut(req: Request, cb?: () => void): void;
+    logIn(req: ExtendedRequest, user: any, cb: (err?: Error) => void): void;
+    logOut(req: ExtendedRequest, cb?: () => void): void;
 }
-export = SessionManager;
+export default SessionManager;

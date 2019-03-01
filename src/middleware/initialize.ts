@@ -1,4 +1,8 @@
-import { Handler } from 'express'
+import { Response, NextFunction } from 'express'
+
+import Authenticator from '../authenticator'
+import { ExtendedRequest } from '../types/incoming-message'
+
 /**
  * Passport initialization.
  *
@@ -42,15 +46,17 @@ import { Handler } from 'express'
  */
 // TODO: add typings to instance and session
 
-export = function initializeFactory(passport: any): Handler {
-  return function initialize(req, res, next) {
-    req._passport = {
-      instance: passport,
-    }
+export default function initializeFactory(passport?: Authenticator) {
+  return function initialize(req: ExtendedRequest, res: Response, next: NextFunction) {
+    if (passport) {
+      req._passport = {
+        instance: passport,
+      }
 
-    if (req.session && req.session[passport._key]) {
-      // load data from existing session
-      req._passport.session = req.session[passport._key]
+      if (req.session && req.session[passport._key]) {
+        // load data from existing session
+        req._passport.session = req.session[passport._key]
+      }
     }
 
     next()

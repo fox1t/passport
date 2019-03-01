@@ -1,4 +1,4 @@
-import { Request } from 'express'
+import { ExtendedRequest } from './types/incoming-message'
 
 class SessionManager {
   _key: string
@@ -15,7 +15,7 @@ class SessionManager {
     this._serializeUser = serializeUser
   }
 
-  logIn(req: Request, user: any, cb: (err?: Error) => void) {
+  logIn(req: ExtendedRequest, user: any, cb: (err?: Error) => void) {
     const self = this
     this._serializeUser(user, req, function(err: Error, obj: any) {
       if (err) {
@@ -33,7 +33,7 @@ class SessionManager {
     })
   }
 
-  logOut(req: Request, cb?: () => void) {
+  logOut(req: ExtendedRequest, cb?: () => void) {
     if (req._passport && req._passport.session) {
       delete req._passport.session.user
     }
@@ -43,4 +43,4 @@ class SessionManager {
   }
 }
 
-export = SessionManager
+export default SessionManager

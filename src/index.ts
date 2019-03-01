@@ -9,7 +9,7 @@ import Strategy from 'passport-strategy'
  */
 const passport = new Passport()
 
-export = Object.assign(passport, {
+const passportWithConstructors = Object.assign(passport, {
   Passport,
   Authenticator: Passport,
   Strategy,
@@ -17,3 +17,6 @@ export = Object.assign(passport, {
     SessionStrategy,
   },
 })
+;(passportWithConstructors as any).default = passportWithConstructors
+
+export = passportWithConstructors

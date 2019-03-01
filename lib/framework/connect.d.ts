@@ -8,4 +8,4 @@ declare function connectMiddleware(): ConnectMiddlewareObject;
 declare namespace connectMiddleware {
     var __monkeypatchNode: () => void;
 }
-export = connectMiddleware;
+export default connectMiddleware;

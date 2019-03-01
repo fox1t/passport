@@ -1,19 +1,19 @@
-import IncomingMessageExt from '../http/request'
+import { logIn, logOut, isAuthenticated, isUnauthenticated } from '../http/request'
+import { IncomingMessage } from 'http'
+import Authenticator from '../authenticator'
 
-declare module 'http' {
-  interface IncomingMessage {
-    login: typeof IncomingMessageExt.logIn
-    logIn: typeof IncomingMessageExt.logIn
-    logout: typeof IncomingMessageExt.logOut
-    logOut: typeof IncomingMessageExt.logOut
-    isAuthenticated: typeof IncomingMessageExt.isAuthenticated
-    isUnauthenticated: typeof IncomingMessageExt.isUnauthenticated
-    session: any
-    _passport: {
-      instance: any
-      session?: any
-    }
-    flash(key: string, message: string): void
-    [k: string]: any
+export interface ExtendedRequest extends IncomingMessage {
+  login: typeof logIn
+  logIn: typeof logIn
+  logout: typeof logOut
+  logOut: typeof logOut
+  isAuthenticated: typeof isAuthenticated
+  isUnauthenticated: typeof isUnauthenticated
+  session: any
+  _passport: {
+    instance: Authenticator
+    session?: any
   }
+  flash(key: string, message: string): void
+  [k: string]: any
 }

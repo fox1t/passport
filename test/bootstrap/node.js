@@ -1,7 +1,8 @@
-var chai = require('chai');
+const chai = require('chai')
 
-chai.use(require('chai-connect-middleware'));
-chai.use(require('chai-passport-strategy'));
+chai.use(require('chai-connect-middleware'))
+chai.use(require('chai-passport-strategy'))
 
-global.$require = require('proxyquire');
-global.expect = chai.expect;
+require('ts-node').register({
+  project: 'test/tsconfig.test.json',
+})

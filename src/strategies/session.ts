@@ -1,12 +1,18 @@
 import pause from 'pause'
-import { Strategy } from 'passport-strategy'
-import { Request } from 'express'
+import { ExtendedRequest } from '../types/incoming-message'
+import { BasicStrategy } from '.'
+import Authenticator from '../authenticator'
 
-class SessionStrategy extends Strategy {
+class SessionStrategy extends BasicStrategy {
   name: string
   _deserializeUser: Function
 
-  constructor(options: Function | any, deserializeUser?: Function) {
+  constructor(deserializeUser?: Authenticator['deserializeUser'])
+  constructor(options: any, deserializeUser?: Authenticator['deserializeUser'])
+  constructor(
+    options?: Authenticator['deserializeUser'] | any,
+    deserializeUser?: Authenticator['deserializeUser'],
+  ) {
     super()
     if (typeof options === 'function') {
       deserializeUser = options
@@ -31,9 +37,9 @@ class SessionStrategy extends Strategy {
    * @param {Object} options
    * @api protected
    */
-  authenticate(req: Request, options: { pauseStream?: boolean }) {
+  authenticate(req: ExtendedRequest, options: { pauseStream?: boolean }) {
     if (!req._passport) {
-      return this.error(new Error('passport.initialize() middleware not in use'))
+      return this.error!(new Error('passport.initialize() middleware not in use'))
     }
     options = options || {}
 
@@ -51,7 +57,7 @@ class SessionStrategy extends Strategy {
       const paused = options.pauseStream ? pause(req) : null
       this._deserializeUser(su, req, function(err: Error, user: any) {
         if (err) {
-          return self.error(err)
+          return self.error!(err)
         }
         if (!user) {
           delete req._passport.session.user
@@ -60,14 +66,15 @@ class SessionStrategy extends Strategy {
           const property = req._passport.instance._userProperty || 'user'
           req[property] = user
         }
-        self.pass()
+        self.pass!()
         if (paused) {
           paused.resume()
         }
       })
     } else {
-      self.pass()
+      self.pass!()
     }
   }
 }
-export = SessionStrategy
+
+export default SessionStrategy

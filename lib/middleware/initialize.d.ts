@@ -1,3 +1,4 @@
-import { Handler } from 'express';
-declare const _default: (passport: any) => Handler;
-export = _default;
+import { Response, NextFunction } from 'express';
+import Authenticator from '../authenticator';
+import { ExtendedRequest } from '../types/incoming-message';
+export default function initializeFactory(passport?: Authenticator): (req: ExtendedRequest, res: Response, next: NextFunction) => void;

@@ -11,4 +11,4 @@ class AuthenticationError extends Error {
   }
 }
 
-export = AuthenticationError
+export default AuthenticationError

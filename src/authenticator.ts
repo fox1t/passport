@@ -1,12 +1,17 @@
 import SessionStrategy from './strategies/session'
 import SessionManager from './sessionmanager'
-import { Strategy } from 'passport'
 import connect from './framework/connect'
-import { Handler, Request } from 'express'
+import { Handler } from 'express'
+import { BasicStrategy } from './strategies'
+import { ExtendedRequest } from './types/incoming-message'
+
+type DoneFunction = (err: null | Error | 'pass', user?: any) => void
+
+// (req: ExtendedRequest, user: any, done: DoneFunction): void
 
 class Authenticator {
   _key = 'passport'
-  _strategies: { [k: string]: Strategy } = {}
+  _strategies: { [k: string]: BasicStrategy } = {}
   _serializers: Function[] = []
   _deserializers: Function[] = []
   _infoTransformers: Function[] = []
@@ -15,15 +20,6 @@ class Authenticator {
   _sm: SessionManager
 
   constructor() {
-    this.init()
-  }
-
-  /**
-   * Initialize authenticator.
-   *
-   * @api protected
-   */
-  init() {
     this.framework(connect())
     this.use(new SessionStrategy(this.deserializeUser.bind(this)))
     this._sm = new SessionManager({ key: this._key }, this.serializeUser.bind(this))
@@ -44,9 +40,11 @@ class Authenticator {
    * @return {Authenticator} for chaining
    * @api public
    */
-  use(name: string | Strategy, strategy?: Strategy): this {
+  use(name: BasicStrategy): this
+  use(name: string, strategy: BasicStrategy): this
+  use(name: BasicStrategy | string, strategy?: BasicStrategy): this {
     if (!strategy) {
-      strategy = name as Strategy
+      strategy = name as BasicStrategy
       name = strategy.name as string
     }
     if (!name) {
@@ -124,7 +122,7 @@ class Authenticator {
    * @return {Function} middleware
    * @api public
    */
-  initialize(options: { userProperty: string }): Handler {
+  initialize(options?: { userProperty?: string }): Handler {
     options = options || {}
     this._userProperty = options.userProperty || 'user'
 
@@ -183,7 +181,7 @@ class Authenticator {
    * @return {Function} middleware
    * @api public
    */
-  authorize(strategy: string, options?: any, callback?: Function): Handler {
+  authorize(strategy: string, options?: any, callback?: Function) {
     options = options || {}
     options.assignProperty = 'account'
 
@@ -227,7 +225,7 @@ class Authenticator {
    * @return {Function} middleware
    * @api public
    */
-  session(options: { pauseStream: boolean }) {
+  session(options?: { pauseStream?: boolean }): Handler {
     return this.authenticate('session', options)
   }
 
@@ -250,9 +248,21 @@ sessionManager = function(mgr) {
    *
    * @api public
    */
-  serializeUser(fn: Function | any, req: Request | Function | undefined, done?: Function) {
+  serializeUser(
+    fn:
+      | ((user: any, done: DoneFunction) => void)
+      | ((req: ExtendedRequest, user: any, done: DoneFunction) => void),
+  ): void
+  serializeUser(user: any, done: DoneFunction): void
+  serializeUser(user: any, req: ExtendedRequest, done: Function): void
+  serializeUser(
+    fn: Function | any,
+    req?: ExtendedRequest | Function | undefined,
+    done?: Function,
+  ): void {
     if (typeof fn === 'function') {
-      return this._serializers.push(fn)
+      this._serializers.push(fn)
+      return
     }
 
     // private implementation that traverses the chain of serializers, attempting
@@ -266,7 +276,7 @@ sessionManager = function(mgr) {
     }
 
     const stack = this._serializers
-    ;(function pass(i, err, obj) {
+    ;(function pass(i: number, err?: null | 'pass' | Error, obj?: any) {
       // serializers use 'pass' as an error to skip processing
       if ('pass' === err) {
         err = undefined
@@ -281,7 +291,7 @@ sessionManager = function(mgr) {
         return done!(new Error('Failed to serialize user into session'))
       }
 
-      function serialized(e: any, o: any) {
+      function serialized(e: Error, o: any) {
         pass(i + 1, e, o)
       }
 
@@ -311,9 +321,21 @@ sessionManager = function(mgr) {
    *
    * @api public
    */
-  deserializeUser(fn: Function | any, req: Request | Function | undefined, done?: Function) {
+  deserializeUser(
+    fn:
+      | ((user: any, done: DoneFunction) => void)
+      | ((req: ExtendedRequest, user: any, done: DoneFunction) => void),
+  ): void
+  deserializeUser(obj: any, done: DoneFunction): void
+  deserializeUser(obj: any, req: ExtendedRequest, done: DoneFunction): void
+  deserializeUser(
+    fn: Function | any,
+    req?: ExtendedRequest | Function | undefined,
+    done?: Function,
+  ): void {
     if (typeof fn === 'function') {
-      return this._deserializers.push(fn)
+      this._deserializers.push(fn)
+      return
     }
 
     // private implementation that traverses the chain of deserializers,
@@ -402,9 +424,21 @@ sessionManager = function(mgr) {
    *
    * @api public
    */
-  transformAuthInfo(fn: Function | any, req: Request | Function | undefined, done?: Function) {
+  transformAuthInfo(
+    fn:
+      | ((info: any, done: DoneFunction) => void)
+      | ((req: ExtendedRequest, info: any, done: DoneFunction) => void),
+  ): void
+  transformAuthInfo(obj: any, done: DoneFunction): void
+  transformAuthInfo(obj: any, req: ExtendedRequest, done: DoneFunction): void
+  transformAuthInfo(
+    fn: Function | any,
+    req?: ExtendedRequest | Function | undefined,
+    done?: Function,
+  ): void {
     if (typeof fn === 'function') {
-      return this._infoTransformers.push(fn)
+      this._infoTransformers.push(fn)
+      return
     }
 
     // private implementation that traverses the chain of transformers,
@@ -463,9 +497,9 @@ sessionManager = function(mgr) {
    * @return {Strategy}
    * @api private
    */
-  _strategy(name: string): Strategy {
+  _strategy(name: string): BasicStrategy {
     return this._strategies[name]
   }
 }
 
-export = Authenticator
+export default Authenticator

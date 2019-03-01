@@ -31,12 +31,12 @@ function connectMiddleware(): ConnectMiddlewareObject {
 }
 
 connectMiddleware.__monkeypatchNode = function() {
-  http.IncomingMessage.prototype.login = http.IncomingMessage.prototype.logIn =
+  ;(http.IncomingMessage.prototype as any).login = (http.IncomingMessage.prototype as any).logIn =
     IncomingMessageExt.logIn
-  http.IncomingMessage.prototype.logout = http.IncomingMessage.prototype.logOut =
+  ;(http.IncomingMessage.prototype as any).logout = (http.IncomingMessage.prototype as any).logOut =
     IncomingMessageExt.logOut
-  http.IncomingMessage.prototype.isAuthenticated = IncomingMessageExt.isAuthenticated
-  http.IncomingMessage.prototype.isUnauthenticated = IncomingMessageExt.isUnauthenticated
+  ;(http.IncomingMessage.prototype as any).isAuthenticated = IncomingMessageExt.isAuthenticated
+  ;(http.IncomingMessage.prototype as any).isUnauthenticated = IncomingMessageExt.isUnauthenticated
 }
 
-export = connectMiddleware
+export default connectMiddleware

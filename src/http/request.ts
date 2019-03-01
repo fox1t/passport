@@ -18,7 +18,7 @@
  * @param {Function} done
  * @api public
  */
-function logIn(user: object, options: any, done: (err?: Error) => void) {
+export function logIn(user: object, options: any, done: (err?: Error) => void) {
   if (typeof options === 'function') {
     done = options
     options = {}
@@ -60,7 +60,7 @@ function logIn(user: object, options: any, done: (err?: Error) => void) {
  *
  * @api public
  */
-function logOut() {
+export function logOut() {
   let property = 'user'
   if (this._passport && this._passport.instance) {
     property = this._passport.instance._userProperty || 'user'
@@ -78,7 +78,7 @@ function logOut() {
  * @return {Boolean}
  * @api public
  */
-function isAuthenticated() {
+export function isAuthenticated() {
   let property = 'user'
   if (this._passport && this._passport.instance) {
     property = this._passport.instance._userProperty || 'user'
@@ -93,7 +93,7 @@ function isAuthenticated() {
  * @return {Boolean}
  * @api public
  */
-function isUnauthenticated() {
+export function isUnauthenticated() {
   return !this.isAuthenticated()
 }
 
@@ -106,4 +106,4 @@ const req = {
   isUnauthenticated,
 }
 
-export = req
+export default req

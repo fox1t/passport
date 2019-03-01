@@ -1,10 +1,12 @@
 import SessionManager from './sessionmanager';
-import { Strategy } from 'passport';
-import { Handler, Request } from 'express';
+import { Handler } from 'express';
+import { BasicStrategy } from './strategies';
+import { ExtendedRequest } from './types/incoming-message';
+declare type DoneFunction = (err: null | Error | 'pass', user?: any) => void;
 declare class Authenticator {
     _key: string;
     _strategies: {
-        [k: string]: Strategy;
+        [k: string]: BasicStrategy;
     };
     _serializers: Function[];
     _deserializers: Function[];
@@ -13,21 +15,27 @@ declare class Authenticator {
     _userProperty: string;
     _sm: SessionManager;
     constructor();
-    init(): void;
-    use(name: string | Strategy, strategy?: Strategy): this;
+    use(name: BasicStrategy): this;
+    use(name: string, strategy: BasicStrategy): this;
     unuse(name: string): this;
     framework(fw: any): this;
-    initialize(options: {
-        userProperty: string;
+    initialize(options?: {
+        userProperty?: string;
     }): Handler;
     authenticate(strategy: string, options?: Function | any, callback?: Function): Handler;
-    authorize(strategy: string, options?: any, callback?: Function): Handler;
-    session(options: {
-        pauseStream: boolean;
+    authorize(strategy: string, options?: any, callback?: Function): any;
+    session(options?: {
+        pauseStream?: boolean;
     }): Handler;
-    serializeUser(fn: Function | any, req: Request | Function | undefined, done?: Function): number | undefined;
-    deserializeUser(fn: Function | any, req: Request | Function | undefined, done?: Function): number | undefined;
-    transformAuthInfo(fn: Function | any, req: Request | Function | undefined, done?: Function): number | undefined;
-    _strategy(name: string): Strategy;
+    serializeUser(fn: ((user: any, done: DoneFunction) => void) | ((req: ExtendedRequest, user: any, done: DoneFunction) => void)): void;
+    serializeUser(user: any, done: DoneFunction): void;
+    serializeUser(user: any, req: ExtendedRequest, done: Function): void;
+    deserializeUser(fn: ((user: any, done: DoneFunction) => void) | ((req: ExtendedRequest, user: any, done: DoneFunction) => void)): void;
+    deserializeUser(obj: any, done: DoneFunction): void;
+    deserializeUser(obj: any, req: ExtendedRequest, done: DoneFunction): void;
+    transformAuthInfo(fn: ((info: any, done: DoneFunction) => void) | ((req: ExtendedRequest, info: any, done: DoneFunction) => void)): void;
+    transformAuthInfo(obj: any, done: DoneFunction): void;
+    transformAuthInfo(obj: any, req: ExtendedRequest, done: DoneFunction): void;
+    _strategy(name: string): BasicStrategy;
 }
-export = Authenticator;
+export default Authenticator;

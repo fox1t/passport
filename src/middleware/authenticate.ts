@@ -1,7 +1,9 @@
 import http from 'http'
 import IncomingMessageExt from '../http/request'
 import AuthenticationError from '../errors/authenticationerror'
-import { Handler } from 'express'
+import { ExtendedRequest } from '../types/incoming-message'
+import { Response, NextFunction } from 'express'
+import Authenticator from '../authenticator'
 
 /**
  * Authenticates requests.
@@ -73,24 +75,32 @@ type FailureObject = {
 }
 
 interface AuthenticateFactoryOptions {
+  scope?: string
   failureFlash?: boolean | string | FlashObject
   failureMessage?: boolean | string
   successRedirect?: string
   failureRedirect?: string
   failWithError?: boolean
-  successFlash?: string | FlashObject
+  successFlash?: boolean | string | FlashObject
   successMessage?: boolean | string
   assignProperty?: string
   successReturnToOrRedirect?: string
   authInfo?: boolean
 }
 
-export = function authenticateFactory(
-  passport: any,
+type AuthenticateFactoryCallback = (
+  err: null | Error,
+  user?: any,
+  info?: any,
+  statuses?: any | any[],
+) => void
+
+export default function authenticateFactory(
+  passport: Authenticator,
   name: string | string[],
-  options: AuthenticateFactoryOptions,
-  callback: Function,
-): Handler {
+  options?: AuthenticateFactoryOptions | AuthenticateFactoryCallback,
+  callback?: AuthenticateFactoryCallback,
+) {
   if (typeof options === 'function') {
     callback = options
     options = {}
@@ -114,10 +124,10 @@ export = function authenticateFactory(
     multi = false
   }
 
-  return function authenticate(req, res, next) {
+  return function authenticate(req: ExtendedRequest, res: Response, next: NextFunction) {
     if (
-      http.IncomingMessage.prototype.logIn &&
-      http.IncomingMessage.prototype.logIn !== IncomingMessageExt.logIn
+      (http.IncomingMessage.prototype as any).logIn &&
+      (http.IncomingMessage.prototype as any).logIn !== IncomingMessageExt.logIn
     ) {
       require('../framework/connect').__monkeypatchNode()
     }
@@ -145,9 +155,10 @@ export = function authenticateFactory(
       let failure = failures[0] || {},
         challenge = failure.challenge || {},
         msg
+      const authenticateOptions = options as AuthenticateFactoryOptions
 
-      if (options.failureFlash) {
-        let flash = options.failureFlash
+      if (authenticateOptions.failureFlash) {
+        let flash = authenticateOptions.failureFlash
         if (typeof flash === 'boolean') {
           flash = challenge as FlashObject
         }
@@ -162,8 +173,8 @@ export = function authenticateFactory(
           req.flash(type, msg)
         }
       }
-      if (options.failureMessage) {
-        msg = options.failureMessage
+      if (authenticateOptions.failureMessage) {
+        msg = authenticateOptions.failureMessage
         if (typeof msg === 'boolean') {
           msg = (challenge as FlashObject).message || challenge
         }
@@ -172,8 +183,8 @@ export = function authenticateFactory(
           req.session.messages.push(msg)
         }
       }
-      if (options.failureRedirect) {
-        return res.redirect(options.failureRedirect)
+      if (authenticateOptions.failureRedirect) {
+        return res.redirect(authenticateOptions.failureRedirect)
       }
 
       // When failure handling is not delegated to the application, the default
@@ -181,7 +192,7 @@ export = function authenticateFactory(
       // header will be set according to the strategies in use (see
       // actions#fail).  If multiple strategies failed, each of their challenges
       // will be included in the response.
-      const rchallenge = []
+      const rchallenge: string[] = []
       let rstatus
       let status
 
@@ -200,7 +211,7 @@ export = function authenticateFactory(
       if (res.statusCode === 401 && rchallenge.length) {
         res.setHeader('WWW-Authenticate', rchallenge)
       }
-      if (options.failWithError) {
+      if (authenticateOptions.failWithError) {
         return next(new AuthenticationError(http.STATUS_CODES[res.statusCode]!, rstatus as number))
       }
       res.end(http.STATUS_CODES[res.statusCode])
@@ -252,8 +263,10 @@ export = function authenticateFactory(
         info = info || {}
         let msg
 
-        if (options.successFlash) {
-          let flash = options.successFlash
+        const authenticateOptions = options as AuthenticateFactoryOptions
+
+        if (authenticateOptions.successFlash) {
+          let flash = authenticateOptions.successFlash
           if (typeof flash === 'boolean') {
             flash = info || {}
           }
@@ -268,8 +281,8 @@ export = function authenticateFactory(
             req.flash(type, msg)
           }
         }
-        if (options.successMessage) {
-          msg = options.successMessage
+        if (authenticateOptions.successMessage) {
+          msg = authenticateOptions.successMessage
           if (typeof msg === 'boolean') {
             msg = info.message || info
           }
@@ -278,32 +291,32 @@ export = function authenticateFactory(
             req.session.messages.push(msg)
           }
         }
-        if (options.assignProperty) {
-          req[options.assignProperty] = user
+        if (authenticateOptions.assignProperty) {
+          req[authenticateOptions.assignProperty] = user
           return next()
         }
 
-        req.logIn(user, options, function(err) {
+        req.logIn(user, authenticateOptions, function(err) {
           if (err) {
             return next(err)
           }
 
           function complete() {
-            if (options.successReturnToOrRedirect) {
-              let url = options.successReturnToOrRedirect
+            if (authenticateOptions.successReturnToOrRedirect) {
+              let url = authenticateOptions.successReturnToOrRedirect
               if (req.session && req.session.returnTo) {
                 url = req.session.returnTo
                 delete req.session.returnTo
               }
               return res.redirect(url)
             }
-            if (options.successRedirect) {
-              return res.redirect(options.successRedirect)
+            if (authenticateOptions.successRedirect) {
+              return res.redirect(authenticateOptions.successRedirect)
             }
             next()
           }
 
-          if (options.authInfo !== false) {
+          if (authenticateOptions.authInfo !== false) {
             passport.transformAuthInfo(info, req, function(error: Error, tinfo: any) {
               if (error) {
                 return next(error)
